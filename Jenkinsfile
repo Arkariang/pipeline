@@ -1,4 +1,4 @@
-def taco_scm = [ url: "https://github.int.midasplayer.com/taco/taco-react.git", branch: "feature/build_system"]
+def project_scm = [ url: "https://github.com/Arkariang/pipeline.git", branch: "master"]
 
 pipeline {
   agent any
@@ -6,29 +6,24 @@ pipeline {
   stages {
     stage("Build") {
       steps {
-        node('docker && linux') {
-          echo "Building"
-          git(url: taco_scm.url, branch: taco_scm.branch)                    
-          sh('''
-docker build -t taco-base . 
-docker run -i --rm --name taco-build-container taco-base npm run build
-          ''')
-        }
+        echo "Building"
+        git(url: project_scm.url, branch: project_scm.branch)                    
+        sh('''
+        npm install
+        npm run build
+        ''')
       }
     }
     stage("Code check") {
       steps {
         parallel(
-              "test": {
-                node('docker && linux') {
-                  echo "Testing"
-                  git(url: taco_scm.url, branch: taco_scm.branch)                    
-                  sh('''
-        docker build -t taco-base . 
-        docker run -i --rm --name taco-test-container taco-base npm run test
-                  ''')
-                }
-              }
+            "test": {
+              echo "Testing"
+              git(url: project_scm.url, branch: project_scm.branch)                    
+              sh('''
+              npm run test
+              ''')
+            }
           )
       }
     }
